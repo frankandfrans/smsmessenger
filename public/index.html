@@ -18,7 +18,7 @@
       e.preventDefault();
       const formData = new FormData(this);
 
-      await fetch('https://smsmessengeru.onrender.com', {
+      await fetch('https://smsmessengeru.onrender.com/save-sms-signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
