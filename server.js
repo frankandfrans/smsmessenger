@@ -1,49 +1,59 @@
-require('dotenv').config();
 const express = require('express');
 const fetch = require('node-fetch');
-const cors = require('cors');
+const path = require('path');
+
+const PAGE_ID = '210175288809';
+const ACCESS_TOKEN = 'REPLACE_WITH_YOUR_VALID_PAGE_ACCESS_TOKEN';
 
 const app = express();
-app.use(cors());
-app.use(express.json());
-app.use(express.static('public'));
 
-const BIGCOMMERCE_STORE_HASH = process.env.BIGCOMMERCE_STORE_HASH;
-const BIGCOMMERCE_ACCESS_TOKEN = process.env.BIGCOMMERCE_ACCESS_TOKEN;
+app.use((req, res, next) => {
+  res.header('Cache-Control', 'no-store');
+  res.header('Access-Control-Allow-Origin', '*');
+  next();
+});
 
-app.post('/save-sms-signup', async (req, res) => {
-  const { first_name, email, phone } = req.body;
+app.use(express.static(__dirname));
 
+app.get('/fb-posts', async (req, res) => {
   try {
-    const response = await fetch(`https://api.bigcommerce.com/stores/${BIGCOMMERCE_STORE_HASH}/v3/customers`, {
-      method: 'POST',
-      headers: {
-        'X-Auth-Token': BIGCOMMERCE_ACCESS_TOKEN,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-        customers: [{
-          first_name: first_name,
-          email: email,
-          phone: phone,
-          accepts_marketing: true,
-          custom_fields: [
-            { name: 'sms_opt_in', value: 'yes' }
-          ]
-        }]
-      })
-    });
+    const url = `https://graph.facebook.com/v22.0/${PAGE_ID}/posts?fields=message,attachments{subattachments{media},media}&limit=10&access_token=${ACCESS_TOKEN}`;
 
-    const result = await response.json();
-    res.status(200).send({ message: 'Customer saved!', result });
+    const fbRes = await fetch(url);
+
+    if (!fbRes.ok) {
+      const errText = await fbRes.text();
+      console.error("⛔ Facebook API Error:", errText);
+      return res.status(500).json({ error: 'Facebook API Error', details: errText });
+    }
+
+    const json = await fbRes.json();
+    const posts = json.data
+      ?.filter(p => p.message && p.message.includes('#hookedonfandf') && p.message.includes('#fishingreport'))
+      .slice(0, 1)
+      .map(p => {
+        const images = [];
+        const attach = p.attachments?.data[0];
+        if (attach?.subattachments) {
+          attach.subattachments.data.forEach(s => {
+            images.push(s.media.image.src);
+          });
+        } else if (attach?.media) {
+          images.push(attach.media.image.src);
+        }
+        return { text: p.message, images };
+      });
+
+    res.json(posts);
   } catch (err) {
-    console.error(err);
-    res.status(500).send({ error: 'Failed to save customer' });
+    console.error("🔥 Unhandled error:", err);
+    res.status(500).json({ error: 'Failed to fetch posts' });
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
