@@ -6,7 +6,7 @@ const fs = require('fs');
 const crypto = require('crypto');
 
 const PAGE_ID = '210175288809';
-const ACCESS_TOKEN = 'PASTE_YOUR_NON_EXPIRING_TOKEN_HERE';
+const ACCESS_TOKEN = 'EAAUHRrIZCMu8BO46xDs150EUIK9GWZA49Jvqmf8etcZCHZB7PPIlktFC4xaTRxZAxlz69PLelqnxYxYWdcy5ueoIm1nGPYFHZAdzABkFdo1KxdbZB8vABOCar43NOisLjtttbPAwU97cVmPakMjxV1Ic5aDOFgKZC0x8M1VZA96wnosVKgcHZArkgmZCvxSDwoZD';
 
 const app = express();
 app.use('/images', express.static(path.join(__dirname, 'images')));
