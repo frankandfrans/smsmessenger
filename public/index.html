@@ -1,144 +1,18 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Frank & Fran's Fishing Report</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      text-align: center;
-      overflow: hidden;
-      background: linear-gradient(-45deg, #cce0f5, #f0f9ff, #cce0f5, #f0f9ff);
-      background-size: 400% 400%;
-      animation: gradientShift 15s ease infinite;
-    }
-    h1 {
-      font-size: 3em;
-      margin-bottom: 20px;
-      color: #003366;
-      animation: slideDown 1s ease-out;
-    }
-    .content {
-      display: flex;
-      justify-content: center;
-      align-items: start;
-      gap: 40px;
-      max-width: 1600px;
-      margin: 0 auto;
-      height: 75vh;
-    }
-    .post-text {
-      flex: 1;
-      text-align: left;
-      background: #ffffff;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      font-size: 2em;
-    }
-    .slideshow {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100%;
-      position: relative;
-      background: #ffffff;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      overflow: hidden;
-    }
-    .slideshow img {
-      width: auto;
-      max-height: 100%;
-      max-width: 100%;
-      position: absolute;
-      opacity: 0;
-      transition: opacity 2s ease, transform 2s ease;
-    }
-    .slideshow img.active {
-      opacity: 1;
-      transform: scale(1.05);
-    }
-    @keyframes slideDown {
-      from { transform: translateY(-50px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-    @keyframes gradientShift {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <h1 id="header">Frank & Fran's Fishing Report</h1>
-  <div class="content">
-    <div id="posts" class="post-text"><div id="text-content"></div></div>
-    <div id="slideshow" class="slideshow"></div>
+  <div class="container">
+    <div class="text-box" id="textBox">Loading report...</div>
+    <div class="image-box" id="imageBox"></div>
   </div>
-
-  <script>
-    // Auto-refresh every 30 minutes
-    setTimeout(() => {
-      window.location.reload();
-    }, 1800000);
-
-    function autoResizeFont(container, minSize = 1, maxSize = 3) {
-      let fontSize = maxSize;
-      const step = 0.1;
-      const content = container.querySelector("#text-content");
-      content.style.fontSize = fontSize + "em";
-      while ((content.scrollHeight > container.clientHeight || content.scrollWidth > container.clientWidth) && fontSize > minSize) {
-        fontSize -= step;
-        content.style.fontSize = fontSize + "em";
-      }
-    }
-
-    fetch('/fb-posts')
-      .then(res => {
-        if (!res.ok) throw new Error("Network response was not ok");
-        return res.json();
-      })
-      .then(data => {
-        if (data.length > 0) {
-          const firstPost = data[0];
-          const lines = firstPost.text.split('\n');
-          const titleLine = lines.shift();
-          document.getElementById('header').innerText = titleLine;
-
-          const textContainer = document.getElementById('text-content');
-          textContainer.innerHTML = `<p>${lines.join('<br><br>')}</p>`;
-          autoResizeFont(document.getElementById('posts'));
-
-          const slideshow = document.getElementById('slideshow');
-          const images = firstPost.images.map((img, index) => {
-            const imageEl = document.createElement('img');
-            imageEl.src = img;
-            if (index === 0) imageEl.classList.add('active');
-            slideshow.appendChild(imageEl);
-            return imageEl;
-          });
-
-          let currentSlide = 0;
-          setInterval(() => {
-            images[currentSlide].classList.remove('active');
-            currentSlide = (currentSlide + 1) % images.length;
-            images[currentSlide].classList.add('active');
-          }, 8000);
-        }
-      })
-      .catch(err => {
-        console.error('Error loading posts:', err);
-        document.getElementById('text-content').innerHTML = `<p style="color:red;">Failed to load posts. Please refresh.</p>`;
-      });
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
