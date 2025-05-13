@@ -25,7 +25,6 @@ app.use(express.static('public'));
 const BIGCOMMERCE_STORE_HASH = process.env.BIGCOMMERCE_STORE_HASH;
 const BIGCOMMERCE_ACCESS_TOKEN = process.env.BIGCOMMERCE_ACCESS_TOKEN;
 
-// Sign-up route
 app.post('/save-sms-signup', async (req, res) => {
   const { first_name, last_name, email, phone } = req.body;
 
@@ -54,21 +53,17 @@ app.post('/save-sms-signup', async (req, res) => {
 
     const text = await response.text();
     console.log('Sign-up response:', text);
-
-    const result = JSON.parse(text);
-    res.status(200).send({ message: 'Customer saved!', result });
+    res.status(200).send({ message: 'Customer saved!' });
   } catch (err) {
     console.error(err);
     res.status(500).send({ error: 'Signup failed' });
   }
 });
 
-// Unsubscribe route
 app.post('/unsubscribe', async (req, res) => {
   const { email } = req.body;
 
   try {
-    // Lookup customer ID by email
     const lookup = await fetch(`https://api.bigcommerce.com/stores/${BIGCOMMERCE_STORE_HASH}/v3/customers?email:in=${encodeURIComponent(email)}`, {
       method: 'GET',
       headers: {
@@ -82,9 +77,22 @@ app.post('/unsubscribe', async (req, res) => {
       return res.status(404).send({ error: 'Customer not found' });
     }
 
-    const customerId = lookupData.data[0].id;
+    const customer = lookupData.data[0];
+    const customerId = customer.id;
 
-    // Update to opt out of abandoned cart and product review emails
+    const updatedCustomer = {
+      first_name: customer.first_name,
+      last_name: customer.last_name,
+      email: customer.email,
+      phone: customer.phone,
+      company: customer.company || "",
+      notes: customer.notes || "",
+      store_credit_amounts: [],
+      tax_exempt_category: customer.tax_exempt_category || "",
+      accepts_marketing: customer.accepts_marketing,
+      accepts_product_review_abandoned_cart_emails: false
+    };
+
     const update = await fetch(`https://api.bigcommerce.com/stores/${BIGCOMMERCE_STORE_HASH}/v3/customers/${customerId}`, {
       method: 'PUT',
       headers: {
@@ -92,14 +100,20 @@ app.post('/unsubscribe', async (req, res) => {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
-      body: JSON.stringify({
-        accepts_product_review_abandoned_cart_emails: false
-      })
+      body: JSON.stringify(updatedCustomer)
     });
 
-    const updateResponse = await update.json();
-    console.log('Unsubscribe response:', updateResponse);
-    res.status(200).send({ message: 'Customer unsubscribed.' });
+    const updateText = await update.text();
+    console.log('Raw unsubscribe response body:', updateText);
+
+    try {
+      const parsed = JSON.parse(updateText);
+      res.status(200).send({ message: 'Customer unsubscribed.', parsed });
+    } catch (parseError) {
+      console.error('Failed to parse unsubscribe response:', updateText);
+      res.status(500).send({ error: 'Unexpected response from BigCommerce', body: updateText });
+    }
+
   } catch (err) {
     console.error(err);
     res.status(500).send({ error: 'Unsubscribe failed' });
