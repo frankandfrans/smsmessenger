@@ -78,40 +78,41 @@ app.post('/unsubscribe', async (req, res) => {
     }
 
     const customer = lookupData.data[0];
-    const customerId = customer.id;
 
-    const updatedCustomer = {
-      first_name: customer.first_name,
-      last_name: customer.last_name,
-      email: customer.email,
-      phone: customer.phone,
-      company: customer.company || "",
-      notes: customer.notes || "",
-      store_credit_amounts: [],
-      tax_exempt_category: customer.tax_exempt_category || "",
-      accepts_marketing: customer.accepts_marketing,
-      accepts_product_review_abandoned_cart_emails: false
-    };
+    const updatedCustomerArray = [
+      {
+        id: customer.id,
+        first_name: customer.first_name,
+        last_name: customer.last_name,
+        email: customer.email,
+        phone: customer.phone,
+        company: customer.company || "",
+        notes: customer.notes || "",
+        tax_exempt_category: customer.tax_exempt_category || "",
+        accepts_marketing: customer.accepts_marketing,
+        accepts_product_review_abandoned_cart_emails: false
+      }
+    ];
 
-    const update = await fetch(`https://api.bigcommerce.com/stores/${BIGCOMMERCE_STORE_HASH}/v3/customers/${customerId}`, {
+    const update = await fetch(`https://api.bigcommerce.com/stores/${BIGCOMMERCE_STORE_HASH}/v3/customers`, {
       method: 'PUT',
       headers: {
         'X-Auth-Token': BIGCOMMERCE_ACCESS_TOKEN,
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
-      body: JSON.stringify(updatedCustomer)
+      body: JSON.stringify(updatedCustomerArray)
     });
 
     const updateText = await update.text();
-    console.log('Raw unsubscribe response body:', updateText);
+    console.log('Final unsubscribe response:', updateText);
 
     try {
       const parsed = JSON.parse(updateText);
       res.status(200).send({ message: 'Customer unsubscribed.', parsed });
     } catch (parseError) {
       console.error('Failed to parse unsubscribe response:', updateText);
-      res.status(500).send({ error: 'Unexpected response from BigCommerce', body: updateText });
+      res.status(500).send({ error: 'Unexpected response', body: updateText });
     }
 
   } catch (err) {
