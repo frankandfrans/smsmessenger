@@ -27,8 +27,8 @@ const BIGCOMMERCE_ACCESS_TOKEN = process.env.BIGCOMMERCE_ACCESS_TOKEN;
 
 app.post('/save-sms-signup', async (req, res) => {
   console.log('Received a signup submission!');
-  const { first_name, email, phone } = req.body;
-  console.log('Form data:', { first_name, email, phone });
+  const { first_name, last_name, email, phone } = req.body;
+  console.log('Form data:', { first_name, last_name, email, phone });
 
   try {
     const response = await fetch(`https://api.bigcommerce.com/stores/${BIGCOMMERCE_STORE_HASH}/v3/customers`, {
@@ -41,6 +41,7 @@ app.post('/save-sms-signup', async (req, res) => {
       body: JSON.stringify([
         {
           first_name: first_name,
+          last_name: last_name,
           email: email,
           phone: phone,
           accepts_marketing: true,
