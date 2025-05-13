@@ -38,17 +38,18 @@ app.post('/save-sms-signup', async (req, res) => {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
       },
-      body: JSON.stringify({
-        customers: [{
-          first_name: first_name,
-          email: email,
-          phone: phone,
-          accepts_marketing: true,
-          custom_fields: [
-            { name: 'sms_opt_in', value: 'yes' }
-          ]
-        }]
-      })
+     body: JSON.stringify({
+  customers: [{
+    first_name: first_name,
+    email: email,
+    phone: phone,
+    accepts_marketing: true,
+    custom_fields: [
+      { name: 'sms_opt_in', value: 'yes' }
+    ]
+  }]
+})
+
     });
 
     const text = await response.text();
