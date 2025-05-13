@@ -7,7 +7,8 @@
 <body>
   <h1>Get Fresh Bait Alerts!</h1>
   <form id="smsSignUpForm">
-    <input type="text" name="name" placeholder="Name" required><br>
+    <input type="text" name="first_name" placeholder="First Name" required><br>
+    <input type="text" name="last_name" placeholder="Last Name" required><br>
     <input type="email" name="email" placeholder="Email" required><br>
     <input type="tel" name="phone" placeholder="Phone Number" required><br>
     <button type="submit">Sign Up!</button>
@@ -23,7 +24,8 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            first_name: formData.get('name'),
+            first_name: formData.get('first_name'),
+            last_name: formData.get('last_name'),
             email: formData.get('email'),
             phone: formData.get('phone')
           })
