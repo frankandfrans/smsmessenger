@@ -45,6 +45,7 @@ app.post('/save-sms-signup', async (req, res) => {
           email: email,
           phone: phone,
           accepts_marketing: true,
+          accepts_product_review_abandoned_cart_emails: true,
           custom_fields: [
             { name: 'sms_opt_in', value: 'yes' }
           ]
