@@ -31,7 +31,7 @@ app.post('/save-sms-signup', async (req, res) => {
   console.log('Form data:', { first_name, email, phone });
 
   try {
-    const response = await fetch(`https://api.bigcommerce.com/stores/${BIGCOMMERCE_STORE_HASH}/v3/customers`, {
+   const response = await fetch(`https://api.bigcommerce.com/stores/${BIGCOMMERCE_STORE_HASH}/v3/customers/import`, {
       method: 'POST',
       headers: {
         'X-Auth-Token': BIGCOMMERCE_ACCESS_TOKEN,
