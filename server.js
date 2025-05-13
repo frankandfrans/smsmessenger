@@ -25,10 +25,9 @@ app.use(express.static('public'));
 const BIGCOMMERCE_STORE_HASH = process.env.BIGCOMMERCE_STORE_HASH;
 const BIGCOMMERCE_ACCESS_TOKEN = process.env.BIGCOMMERCE_ACCESS_TOKEN;
 
+// Sign-up route
 app.post('/save-sms-signup', async (req, res) => {
-  console.log('Received a signup submission!');
   const { first_name, last_name, email, phone } = req.body;
-  console.log('Form data:', { first_name, last_name, email, phone });
 
   try {
     const response = await fetch(`https://api.bigcommerce.com/stores/${BIGCOMMERCE_STORE_HASH}/v3/customers`, {
@@ -40,10 +39,10 @@ app.post('/save-sms-signup', async (req, res) => {
       },
       body: JSON.stringify([
         {
-          first_name: first_name,
-          last_name: last_name,
-          email: email,
-          phone: phone,
+          first_name,
+          last_name,
+          email,
+          phone,
           accepts_marketing: true,
           accepts_product_review_abandoned_cart_emails: true,
           custom_fields: [
@@ -54,17 +53,56 @@ app.post('/save-sms-signup', async (req, res) => {
     });
 
     const text = await response.text();
-    console.log('BigCommerce API Response:', text);
+    console.log('Sign-up response:', text);
 
-    try {
-      const result = JSON.parse(text);
-      res.status(200).send({ message: 'Customer saved!', result });
-    } catch (e) {
-      res.status(500).send({ error: 'Failed to parse BigCommerce response', raw: text });
-    }
+    const result = JSON.parse(text);
+    res.status(200).send({ message: 'Customer saved!', result });
   } catch (err) {
     console.error(err);
-    res.status(500).send({ error: 'Failed to save customer' });
+    res.status(500).send({ error: 'Signup failed' });
+  }
+});
+
+// Unsubscribe route
+app.post('/unsubscribe', async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    // Lookup customer ID by email
+    const lookup = await fetch(`https://api.bigcommerce.com/stores/${BIGCOMMERCE_STORE_HASH}/v3/customers?email:in=${encodeURIComponent(email)}`, {
+      method: 'GET',
+      headers: {
+        'X-Auth-Token': BIGCOMMERCE_ACCESS_TOKEN,
+        'Accept': 'application/json'
+      }
+    });
+
+    const lookupData = await lookup.json();
+    if (!lookupData.data || lookupData.data.length === 0) {
+      return res.status(404).send({ error: 'Customer not found' });
+    }
+
+    const customerId = lookupData.data[0].id;
+
+    // Update to opt out of abandoned cart and product review emails
+    const update = await fetch(`https://api.bigcommerce.com/stores/${BIGCOMMERCE_STORE_HASH}/v3/customers/${customerId}`, {
+      method: 'PUT',
+      headers: {
+        'X-Auth-Token': BIGCOMMERCE_ACCESS_TOKEN,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        accepts_product_review_abandoned_cart_emails: false
+      })
+    });
+
+    const updateResponse = await update.json();
+    console.log('Unsubscribe response:', updateResponse);
+    res.status(200).send({ message: 'Customer unsubscribed.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ error: 'Unsubscribe failed' });
   }
 });
 
