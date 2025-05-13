@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fresh Bait SMS Signup</title>
+</head>
+<body>
+  <h1>Get Fresh Bait Alerts!</h1>
+  <form id="smsSignUpForm">
+    <input type="text" name="name" placeholder="Name" required><br>
+    <input type="email" name="email" placeholder="Email" required><br>
+    <input type="tel" name="phone" placeholder="Phone Number" required><br>
+    <button type="submit">Sign Up!</button>
+  </form>
+
+  <script>
+    setTimeout(function() {
+      document.getElementById('smsSignUpForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+
+        await fetch('https://smsmessengeru.onrender.com/save-sms-signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            first_name: formData.get('name'),
+            email: formData.get('email'),
+            phone: formData.get('phone')
+          })
+        });
+
+        alert('Thanks for signing up!');
+        this.reset();
+      });
+    }, 1000);
+  </script>
+</body>
+</html>
