@@ -31,7 +31,7 @@ app.post('/save-sms-signup', async (req, res) => {
   console.log('Form data:', { first_name, email, phone });
 
   try {
-   const response = await fetch(`https://api.bigcommerce.com/stores/${BIGCOMMERCE_STORE_HASH}/v3/customers/import`, {
+    const response = await fetch(`https://api.bigcommerce.com/stores/${BIGCOMMERCE_STORE_HASH}/v3/customers`, {
       method: 'POST',
       headers: {
         'X-Auth-Token': BIGCOMMERCE_ACCESS_TOKEN,
@@ -39,16 +39,12 @@ app.post('/save-sms-signup', async (req, res) => {
         'Accept': 'application/json'
       },
       body: JSON.stringify({
-        customers: [
-          {
-            first_name: first_name,
-            email: email,
-            phone: phone,
-            accepts_marketing: true,
-            custom_fields: [
-              { name: 'sms_opt_in', value: 'yes' }
-            ]
-          }
+        first_name: first_name,
+        email: email,
+        phone: phone,
+        accepts_marketing: true,
+        custom_fields: [
+          { name: 'sms_opt_in', value: 'yes' }
         ]
       })
     });
