@@ -51,8 +51,15 @@ app.post('/save-sms-signup', async (req, res) => {
       })
     });
 
-    const result = await response.json();
-    res.status(200).send({ message: 'Customer saved!', result });
+    const text = await response.text();
+console.log('BigCommerce API Response:', text);
+
+try {
+  const result = JSON.parse(text);
+  res.status(200).send({ message: 'Customer saved!', result });
+} catch (e) {
+  res.status(500).send({ error: 'Failed to parse BigCommerce response', raw: text });
+}
   } catch (err) {
     console.error(err);
     res.status(500).send({ error: 'Failed to save customer' });
